@@ -1,11 +1,11 @@
 <?php
 
-namespace xyg;
+namespace xyg\clouddisk;
 
-class CloudDisk
+class Loader
 {
     // 创建私有静态的数组保存该类对象组
-    private static $handle = [];
+    private static $instance = [];
 
     // 防止使用new直接创建对象
     private function __construct() {}
@@ -14,19 +14,20 @@ class CloudDisk
     private function __clone() {}
 
     // 驱动器句柄
-    public static function drive($type = 'AliyunDrive')
+    public static function drive($type = 'aliyunDrive')
     {
-        if ( PHP_VERSION_ID < 50600 ) {
-            throw new \Exception('PHP版本要>=5.6.0');
+        $type = ucfirst($type);
+        if ( PHP_VERSION_ID < 70000 ) {
+            throw new \Exception('PHP版本要>=7.0.0');
         }
-        if ( empty( self::$handle[$type] ) ) {
-            $class = "\\xyg\\" . $type;
+        if ( empty( self::$instance[$type] ) ) {
+            $class = "\\xyg\\clouddisk\\" . $type;
             if ( !class_exists($class) ) {
-                throw new \Exception("{$type}类库不存在");
+                throw new \Exception(__DIR__. '目录下' . $type . '.php类库不存在');
             }
-            self::$handle[$type] = new $class();
+            self::$instance[$type] = new $class();
         }
-        return self::$handle[$type];
+        return self::$instance[$type];
     }
 
 }
