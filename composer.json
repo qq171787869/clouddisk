@@ -12,9 +12,12 @@
     ],
     "require": {
         "php": ">=7.0.0",
-        "qq171787869/http": "*"
+        "qq171787869/tool": "*"
     },
     "autoload": {
+        "files": [
+            "src/function.php"
+        ],
         "psr-4": {
             "xyg\\clouddisk\\": "src"
         }

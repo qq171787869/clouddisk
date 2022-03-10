@@ -31,11 +31,17 @@ class AliyunDrive
         }
     }
 
+    // 获取配置文件路径
+    public function getConfigPath()
+    {
+        return CONF_PATH . 'clouddisk/aliyundrive.php';
+    }
+
     // 获取配置文件里的refresh_token和access_token
     public function getToken()
     {
-        if ( file_exists( CONF_PATH . 'xyg_aliyundrive.php' ) ) {
-            $config = require CONF_PATH . 'xyg_aliyundrive.php';
+        if ( file_exists( $this->getConfigPath() ) ) {
+            $config = require $this->getConfigPath();
             // 判断access_token是否存在 并且 是否过期
             if ( isset($config['access_token']) && $config['expire_time'] > time() ) {
                 return $config;
@@ -43,7 +49,7 @@ class AliyunDrive
                 return $this->refreshToken($config['refresh_token'], $config);
             }
         } else {
-            throw new \Exception(CONF_PATH . '目录下xyg_aliyundrive.php配置文件不存在');
+            throw new \Exception($this->getConfigPath() . '配置文件不存在');
         }
     }
 
@@ -53,11 +59,11 @@ class AliyunDrive
         $api = $this->auth_url . '/v2/account/token';
         $data['refresh_token'] = $refresh_token;
         $data['grant_type'] = 'refresh_token';
-        $res = \xyg\http\Request::instance()->curl($api, json_encode($data), $this->request_header);
+        $res = \xyg\tool\Request::instance()->curl($api, json_encode($data), $this->request_header);
         if ( $res['httpCode'] === 200 ) {
             $config = $this->filterToken(json_decode($res['body'] , 1));
             $config = array_merge($config_old, $config);
-            file_put_contents(CONF_PATH . 'xyg_aliyundrive.php', "<?php return " . var_export($config, true) . ";", FILE_FLAGS);
+            file_put_contents($this->getConfigPath(), "<?php return " . var_export($config, true) . ";", FILE_FLAGS);
             return $config;
         } else {
             return ;
@@ -105,7 +111,7 @@ class AliyunDrive
             'marker'                    =>  $next_marker ? $next_marker : '',
         ];
         $header['Authorization'] = $token['token_type'] . ' ' . $token['access_token'];
-        $res = \xyg\http\Request::instance()->curl($api, json_encode($data), array_merge($this->request_header, $header));
+        $res = \xyg\tool\Request::instance()->curl($api, json_encode($data), array_merge($this->request_header, $header));
         if ( $res['httpCode'] === 200 ) {
             return $this->filterListData(json_decode($res['body'], 1));
         } else {
@@ -153,7 +159,7 @@ class AliyunDrive
             'url_expire_sec'  =>  14400,
         ];
         $header['Authorization'] = $token['token_type'] . ' ' . $token['access_token'];
-        $res = \xyg\http\Request::instance()->curl($api, json_encode($data), array_merge($this->request_header, $header));
+        $res = \xyg\tool\Request::instance()->curl($api, json_encode($data), array_merge($this->request_header, $header));
         if ( $res['httpCode'] === 200 ) {
             return $this->filterFileData(json_decode($res['body'], 1));
         }
@@ -191,7 +197,7 @@ class AliyunDrive
             'url_expire_sec'=>  14400,
         ];
         $header['Authorization'] = $token['token_type'] . ' ' . $token['access_token'];
-        $res = \xyg\http\Request::instance()->curl($api, json_encode($data), array_merge($this->request_header, $header));
+        $res = \xyg\tool\Request::instance()->curl($api, json_encode($data), array_merge($this->request_header, $header));
         if ( $res['httpCode'] === 200 ) {
             return $this->filterVideoPlayData(json_decode($res['body'], 1));
         }
@@ -244,7 +250,7 @@ class AliyunDrive
             'expire_sec'=>  14400,
         ];
         $header['Authorization'] = $token['token_type'] . ' ' . $token['access_token'];
-        $res = \xyg\http\Request::instance()->curl($api, json_encode($data), array_merge($this->request_header, $header));
+        $res = \xyg\tool\Request::instance()->curl($api, json_encode($data), array_merge($this->request_header, $header));
         if ( $res['httpCode'] === 200 ) {
             $audio = json_decode($res['body'], 1);
             return ['url' => $audio['template_list'][0]['url']];
@@ -255,7 +261,7 @@ class AliyunDrive
     public function getCode($download_url)
     {
         $header['Content-type'] = '';
-        $res = \xyg\http\Request::instance()->curl('get', $download_url, '', array_merge($this->request_header, $header));
+        $res = \xyg\tool\Request::instance()->curl('get', $download_url, '', array_merge($this->request_header, $header));
         return $res;
     }
 
@@ -269,7 +275,7 @@ class AliyunDrive
             'file_id'       =>  $file_id,
         ];
         $header['Authorization'] = $token['token_type'] . ' ' . $token['access_token'];
-        $res = \xyg\http\Request::instance()->curl($api, json_encode($data), array_merge($this->request_header, $header));
+        $res = \xyg\tool\Request::instance()->curl($api, json_encode($data), array_merge($this->request_header, $header));
         if ( $res['httpCode'] === 200 ) {
             return $this->filterFilePath(json_decode($res['body'], 1), $file_id);
         }
@@ -314,7 +320,7 @@ class AliyunDrive
         $data = json_encode($data, JSON_UNESCAPED_UNICODE);
         $data = str_replace(['###', '***'], ['\"', '\"'], $data);
         $header['Authorization'] = $token['token_type'] . ' ' . $token['access_token'];
-        $res = \xyg\http\Request::instance()->curl($api, $data, array_merge($this->request_header, $header));
+        $res = \xyg\tool\Request::instance()->curl($api, $data, array_merge($this->request_header, $header));
         if ( $res['httpCode'] === 200 ) {
             return $this->filterListData(json_decode($res['body'], 1));
         }
